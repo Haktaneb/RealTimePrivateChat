@@ -1,0 +1,544 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+
+    <link type="text/css" rel="stylesheet" href="css/chatstyle.css?v=2005" />
+    <link rel="stylesheet" href="/css/jqueryuı/themes/base/jquery.ui.all.css">
+    <script src="/Scripts/jquery-1.8.2.min.js"></script>
+    <script src="/Scripts/ui/jquery.ui.core.js"></script>
+    <script src="/Scripts/ui/jquery.ui.widget.js"></script>
+    <script src="/Scripts/ui/jquery.ui.mouse.js"></script>
+    <script src="/Scripts/ui/jquery.ui.draggable.js"></script>
+    <script src="/Scripts/ui/jquery.ui.resizable.js"></script>
+    <script src="/Scripts/jquery.signalR-1.0.0.js"></script>
+    <script src="/signalr/hubs"></script>
+    <script type="text/javascript">
+
+        $(function () {
+
+            setMainScreen(false);
+
+            //hub referance
+            var chatHub = $.connection.chatHub;
+
+            clientFunctions(chatHub);
+
+            // Start Hub
+            //https://stackoverflow.com/questions/25597468/use-of-signalr-ping-call-when-using-long-polling
+            //Send ping every 15 second
+            //The default pingInterval is 300000 milliseconds (5 minutes)
+
+            $.connection.hub.start({ pingInterval: 15000 }).done(function () {
+
+                serverFunctions(chatHub)
+                chatHub.server.getIp2()
+
+
+
+            });
+
+        });
+
+
+        //Main screen
+        function setMainScreen(isLogin) {
+
+            if (!isLogin) {
+
+                $("#ChatRoomArea").hide();
+                $("#divLogin").show();
+                $("#UserInformation").hide();
+            }
+            else {
+
+                $("#ChatRoomArea").show();
+                $("#divLogin").hide();
+                $("#UserInformation").show();
+            }
+
+        }
+        //ChatHub server functions
+        function serverFunctions(chatHub) {
+
+
+            $("#LoginButton").click(function () {
+
+
+                var name = $("#NameText").val();
+                var image = $('#base64image').val();
+
+
+                if (name.length > 0) {
+
+                    chatHub.server.connect(name, image);
+
+
+                }
+                else {
+
+                    alert("You have to entry nick name...");
+                    // close_window();
+
+                }
+
+            });
+
+            $("#NameText").keypress(function (e) {
+                if (e.which == 13) { //enter
+                    $("#LoginButton").click();
+                }
+            });
+            //image
+            //$('#OpenImgUpload').click(function () {
+
+
+            //    $('#imgupload').trigger('click');
+            //});
+
+            $('#MessageButton').click(function () {
+
+                var msg = $("#MessageText").val();
+                if (msg.length > 0) {
+
+
+                    chatHub.server.sendMessage(msg);
+                    $("#MessageText").val('');
+                }
+            });
+
+            $("#MessageText").keypress(function (e) {
+                if (e.which == 13) {//enter
+                    $('#MessageButton').click();
+                }
+
+                if (e.which == 27) { //esc
+                    $('#LogoutButton').click();
+                }
+            });
+
+            $('#DisconnectButton').click(function () {
+
+                var userId = $('#tmpId').val();
+
+                if (userId != null) {
+                    chatHub.server.disconnectUser(userId);
+                    chatHub.server.stateControl(userId);
+
+                }
+
+            });
+
+            $('#ReconnectButton').click(function () {
+
+                var userId = $('#tmpId').val();
+                if (userId != null) {
+                    chatHub.server.reconnectUser(userId);
+                    chatHub.server.stateControl(userId);
+                }
+
+
+
+
+            });
+
+            $('#LogoutButton').click(function () {
+
+
+                $.connection.hub.stop();
+
+            });
+
+           
+
+            
+
+
+        }
+        //Chathub Client Functions
+        function clientFunctions(chatHub) {
+            i = 0;
+
+            // Calls when user successfully logged in
+            chatHub.client.userConnection = function (id, userName, allUsers, messages, ip, state) {
+
+                setMainScreen(true);
+
+                $('#tmpId').val(id);
+                $('#tmpIp').val(ip);
+                $('#tmpUserName').val(userName);
+                $('#tmpState').val(state);
+                $('#spanUser').html(userName);
+
+                // Add Login Users
+                for (i = 0; i < allUsers.length; i++) {
+
+                    IncludeUser(chatHub, allUsers[i].ConnectionId, allUsers[i].UserName, allUsers[i].UserState, allUsers[i].userImage);
+                }
+
+                // Add Sending Messages
+                for (i = 0; i < messages.length; i++) {
+
+                    IncludeMessage(messages[i].UserName, messages[i].Message);
+                }
+
+
+            }
+
+            //  New User Connected for other clients
+            chatHub.client.NewUserConnected = function (id, name, ip, state, image) {
+
+                IncludeUser(chatHub, id, name, state, image);
+
+                var tmp = $('<div class="logon ">"' + name.bold() + '   is  logged in  </div>');
+
+                $('#UserDisplayer').prepend(tmp);
+                $(tmp).fadeIn(200).fadeOut(3500);
+            }
+
+
+            // On user Log out
+            chatHub.client.onUserDisconnected = function (id, userName) {
+
+                $('#' + id).remove();
+
+                var privateId = 'prv' + id;
+                $('#' + privateId).remove();
+
+
+                var tmp = $('<div class="disconnect">"NoooooOoOooOoOoooOo   "' + userName.bold() + ' is going to go Heaven :((((( <br> Life is sucks bro</div>');
+
+
+                $('#UserDisplayer').prepend(tmp);
+                $(tmp).fadeIn(200).fadeOut(3500);
+
+            }
+            //  Disconnected
+            chatHub.client.userDisconnect = function (allUsers) {
+
+
+
+
+                $("#UserDisplayer").empty();
+
+                for (i = 0; i < allUsers.length; i++) {
+
+                    IncludeUser(chatHub, allUsers[i].ConnectionId, allUsers[i].UserName, allUsers[i].UserState, allUsers[i].userImage);
+                }
+
+
+            }
+            chatHub.client.userStateControl = function (id, UserState) {
+
+
+                var userId = $('#tmpId').val();
+                if (userId == id) {
+
+                    if (UserState == "Offline") {
+                        $('#MessageButton').hide();
+                        $('#DisconnectButton').hide();
+                        $('#ReconnectButton').show();
+                        $('#ChatArea').hide();
+                        $("#MessageText").hide();
+                    }
+                    if (UserState == "Online") {
+
+                        $('#ReconnectButton').hide();
+                        $('#MessageButton').show();
+                        $('#DisconnectButton').show();
+                        $('#ChatArea').show();
+                        $("#MessageText").show();
+                    }
+                }
+
+
+
+
+
+            }
+            //  Reconnect
+            chatHub.client.userReconnect = function (allUsers) {
+
+
+
+
+                $("#UserDisplayer").empty();
+
+                for (i = 0; i < allUsers.length; i++) {
+
+                    IncludeUser(chatHub, allUsers[i].ConnectionId, allUsers[i].UserName, allUsers[i].UserState, allUsers[i].userImage);
+                }
+
+
+            }
+            //get ip
+            chatHub.client.showIp = function (yourIp) {
+
+                $('#Ip').val(yourIp);
+            }
+
+            chatHub.client.messageCatcher = function (userName, message) {
+
+                IncludeMessage(userName, message);
+            }
+
+
+            chatHub.client.sendPrivateMessage = function (ScreenID, senderUserName, message) {
+
+                var privateId = 'prv' + ScreenID;
+
+
+                if ($('#' + privateId).length == 0) {
+
+                    createPrivateChat(chatHub, ScreenID, privateId, senderUserName);
+
+                }
+
+                $('#' + privateId).find('#privateMessageScreen').append('<div class="message"><span class="userName">' + senderUserName + '</span>: ' + message + '</div>');
+
+                // set scrollbar
+                var height = $('#' + privateId).find('#privateMessageScreen')[0].scrollHeight;
+                $('#' + privateId).find('#privateMessageScreen').scrollTop(height);
+            }
+
+
+
+
+        }
+
+        function close_window() {
+            if (confirm("Close Window?")) {
+                close();
+            }
+        }
+        //Include users in to program
+        function IncludeUser(chatHub, id, name, state, image) {
+
+            var userId = $('#tmpId').val();
+            var userIp = $('#tmpIp').val();
+            var userState = $('#tmpState').val();
+
+
+
+
+            var tmpUserDisplayer = "";
+
+            if (userId == id) {
+
+
+                tmpUserDisplayer = $('<a id="' + id + '" class="quest">' + '<img  src="' + image + '" width= "30" height= "30"   />' + name + '&emsp;' + userIp + '&emsp;' + state + '<a>');
+                // tmpUserDisplayer = $('<img  src="' + image + '"class="quest" width= "30" height= "30" id= "ress"  />');
+
+            }
+            else {
+
+                tmpUserDisplayer = $('<a id="' + id + '" class="quest" >' + '<img  src="' + image + '" width= "30" height= "30"   />' + name + '&emsp;' + state + '<a>');
+
+
+                $(tmpUserDisplayer).click(function () {
+
+
+                    if (state == "Online") {
+                        OpenPrivateChat(chatHub, id, name);
+                    }
+                    if (state == "Offline") {
+
+                        var tmp = $('<div class="disconnect">"' + name + '" is not Online <br> You cant private message!!!<br>Let it go bro let it go</div>');
+                        $(tmp).hide();
+                        $('#UserDisplayer').prepend(tmp);
+                        $(tmp).fadeIn(200).fadeOut(1400);
+
+                    }
+
+
+
+
+                });
+            }
+
+            $("#UserDisplayer").append(tmpUserDisplayer);
+
+
+
+
+
+        }
+
+        function IncludeMessage(userName, message) {
+
+            $('#ChatArea').append('<div class="message"><span class="userName">' + userName.bold() + '</span>: ' + message + '</div>');
+
+            var height = $('#ChatArea')[0].scrollHeight;
+            $('#ChatArea').scrollTop(height);
+        }
+
+        function OpenPrivateChat(chatHub, id, userName) {
+
+
+            var privateId = 'prv' + id;
+
+            if ($('#' + privateId).length > 0) return;
+
+            createPrivateChat(chatHub, id, privateId, userName);
+
+        }
+
+        function createPrivateChat(chatHub, userId, privateId, userName) {
+
+
+
+            var let = confirm("Do you want to talk ?   " + userName);
+
+            if (let == true) {
+                var tmpPrivateScreen = '<div id="' + privateId + '" class="PrivateScreen">' +
+                    '<div class="header">' +
+                    '<div  style="float:right; position:fixed;">' +
+                    //'<div  style="width:300px;">' +
+                    //'<div  style="border - bottom: solid 1px #808080;">' +
+                    '</div>' +
+                    '<span class="selText" rel="0">' + userName.bold() + '</span>' +
+                    '</div>' +
+                    '<div id="privateMessageScreen" class="messageArea">' +
+
+                    '</div>' +
+                    '<div class="buttonBar">' +
+                    '<input id="MessageText" class="msgText" type="text"   />' +
+                    '<input id="SendMessageButton" class="buttonGroup button" type="button" value="Send"   />' +
+                    '<input id="ExitButton" class="buttonGroup button" type="button" value="Exit"   />' +
+                    '</div>' +
+                    '</div>';
+
+                var PrivateScreen = $(tmpPrivateScreen);
+            }
+
+            // Exit
+            PrivateScreen.find('#ExitButton').click(function () {
+                $('#' + privateId).remove();
+            });
+
+            // Send Button event
+            PrivateScreen.find("#SendMessageButton").click(function () {
+
+                $textBox = PrivateScreen.find("#MessageText");
+                var msg = $textBox.val();
+                if (msg.length > 0) {
+
+                    chatHub.server.sendPrivateMessage(userId, msg);
+                    $textBox.val('');
+                }
+            });
+
+            // Text Box event
+            PrivateScreen.find("#MessageText").keypress(function (e) {
+                if (e.which == 13) {
+                    PrivateScreen.find("#SendMessageButton").click();
+                }
+            });
+
+            AddPrivateScreenToContainer(PrivateScreen);
+
+        }
+
+        function AddPrivateScreenToContainer(PrivateScreen) {
+            $('#divContainer').prepend(PrivateScreen);
+
+            PrivateScreen.draggable({
+                disabled: true,
+                handle: ".header",
+                stop: function () {
+
+                }
+            });
+
+        }
+
+
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#falseinput').attr('src', e.target.result);
+                    $('#base64image').val(e.target.result);
+
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+
+        function UserStateControl() {
+            //Check user states evert 15 second
+            $.connection.hub.start({ pingInterval: 15000 });
+        }
+
+    </script>
+
+</head>
+<body>
+
+
+    <br />
+    <br />
+    <br />
+
+    <div id="divContainer">
+        <!--login screen-->
+        <div id="divLogin" class="login">
+            <div>
+                Name:<br />
+                <input id="NameText" type="text" class="textBox" />
+                Ip Adress:<br />
+                <input id="Ip" type="text" class="textBox" readonly />
+            </div>
+            <div id="ButtonMenu">
+                <input id="LoginButton" type="button" class="buttonGroup" value="Login" />
+
+                <input id="fileinput" type="file" class="buttonGroup" accept="image/gif, image/jpeg, image/png" onchange="readURL(this);" /> <br><br>
+
+               <!--// <textarea id="base64image" type="hidden"></textarea>-->
+                <input id="base64image" type="hidden" />
+
+            </div>
+        </div>
+        <!--Online Offline User screen-->
+        <div id="UserInformation" class="UserInformation">
+            <div class="title">
+               User Information : <br />   
+                Image --Name -- Status
+            </div>
+            <div class="DisplayScreen">
+                <div id="UserDisplayer" class="guests"> </div>
+               <!--// <img src="xxx" class="quests" alt="Red dot img" id="ress" width="50" height="50" />-->
+            </div>
+
+        </div>
+        <!--Chat Room-->
+        <div id="ChatRoomArea" class="chatRoom">
+            <div class="title">
+                Current User [<span id='spanUser'></span>]
+
+            </div>
+            <div class="content">
+                <div id="ChatArea" class="ChatScreen">
+                </div>
+
+            </div>
+            <!-- Message -->
+            <div class="messageBar">
+                <input class="textbox" type="text" id="MessageText" />
+                <input id="MessageButton" type="button" value="Send" class="buttonGroup" />
+                <input id="DisconnectButton" type="button" value="Disconnect" class="buttonGroup" />
+                <input id="ReconnectButton" type="button" value="Reconnect" class="buttonGroup" />
+                <input id="LogoutButton" type="button" value="Logout" class="buttonGroup" />
+
+            </div>
+        </div>
+        <!-- Hidden inputs  -->
+        <input id="tmpId" type="hidden" />
+        <input id="tmpState" type="hidden" />
+        <input id="tmpUserName" type="hidden" />
+        <input id="tmpIp" type="hidden" />
+    </div>
+
+</body>
+</html>

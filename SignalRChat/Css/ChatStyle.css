@@ -1,0 +1,242 @@
+﻿
+.buttonGroup {
+    background-color: #494949;
+    border: #000000 solid 2px;
+    padding: 4px;
+    color:white;
+    transition:ease all .5s;
+    cursor: pointer;
+}
+
+    .buttonGroup:hover {
+        color:red;
+
+        background-color: #2d2d2d;
+    }
+body {
+    background-color:#2d2d2d;
+}
+.login {
+    width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: auto;
+    padding: 10px;
+    border-radius:10px;
+   color:white;
+    background-color:  #494949;
+}
+
+    .login .textBox {
+        width: 650px;
+       
+        text-align:center;
+    }
+
+
+    .login #ButtonMenu {
+        padding: 4px;
+        text-align: right;
+    }
+
+.logon {
+    position:  center;
+    margin: 15px;
+    background-color: gold;
+    padding: 4px;
+    border: thin;
+}
+ @media only screen and (max-width: 600px) {
+    body {
+    background-color: lightblue;
+    }
+    }
+.UserInformation {
+    width: 250px;
+    height: 800px;
+    margin-left: 10px;
+    float: left;
+    list-style-type:none;
+    font-family: Arial;
+    border: solid 1px #ffd800;
+    background-color: #494949;
+}
+
+    .UserInformation .title {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        color: white;
+        font-family: Arial;
+        padding: 8px;
+        background-color: #494949;
+        border-bottom: solid 1px #808080;
+    }
+
+    .UserInformation .DisplayScreen {
+        height: 800px;
+        clear: both;
+    }
+
+        .UserInformation .DisplayScreen .UserInformation {
+            float: right;
+            width: 250px;
+            height: 800px;
+            border-left: solid 1px #808080;
+            /*overflow-y: scroll;*/
+        }
+
+
+        .UserInformation .DisplayScreen .guests {
+            float: left;
+            width: 250px;
+            height: 800px;
+        }
+
+            .UserInformation .DisplayScreen .guests .quest {
+                display: list-item;
+                cursor: pointer;
+                /*text-align:center;*/
+                padding: 4px;
+                color: white;
+                font-family: Arial;
+                line-height:5px;
+                transition: ease all .5s;
+                background-color: #494949;
+                border-bottom: 2px #000000;
+            }
+
+
+
+                .UserInformation .DisplayScreen .guests .quest:hover {
+                    color: red;
+                    background-color: #2d2d2d;
+                }
+.chatRoom {
+    width: 650px;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: Arial;
+    color: white;
+    border: solid 1px #ffd800;
+    background-color: #494949;
+}
+
+    .chatRoom .title {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        padding: 8px;
+        font-family: Arial;
+        background-color: #494949;
+        border-bottom: solid 1px #ffd800;
+    }
+
+    .chatRoom .content {
+        height: 300px;
+        /*//clear: both;*/
+        overflow-y: scroll;
+    }
+
+        .chatRoom .content .ChatScreen {
+            float: left;
+            width: 550px;
+            height: 300px;
+            border-left: solid 0px #808080;
+            
+        }
+
+
+            .chatRoom .content .ChatScreen .message {
+                padding: 4px;
+                font-family: Arial;
+                color:white;
+            }
+
+                .chatRoom .content .ChatScreen .message .userName {
+                    font-weight: bold;
+                    font-family: Arial;
+                    color: white;
+                }
+
+       
+
+    .chatRoom .messageBar {
+        border-top: solid 2px gray;
+        padding: 5px;
+    }
+
+        .chatRoom .messageBar .textbox {
+            margin-left: 3px;
+            width: 500px;
+        }
+
+.disconnect {
+    position: absolute;
+    margin: 10px;
+    background-color: #ffcbcb;
+    padding: 4px;
+    border: solid 0px red;
+}
+
+.PrivatePermission {
+    position: fixed;
+    float:right;
+    margin: 10px;
+    background-color: greenyellow;
+    padding: 10px;
+    border: solid 1px red;
+}
+.PrivateScreen {
+    position: fixed;
+    float: right;
+    top: 50px;
+    left: 600px;
+    background-color: #2d2d2d;
+    border: #5f9482 solid 1px !important;
+    width: 400px;
+}
+
+    .PrivateScreen .header {
+        cursor: move;
+        background-color: #2d2d2d;
+        color:white;
+        border-bottom: #5f9482 solid 1px;
+        
+    }
+
+    .PrivateScreen .selText {
+        color: white;
+        padding: 4px;
+    }
+
+    .PrivateScreen .messageArea {
+        width: 400px;
+        overflow-y: scroll;
+        background-color: #2d2d2d;
+        height: 200px;
+        color:white;
+        border-bottom: #5f9482 solid 1px;
+    }
+
+        .PrivateScreen .messageArea .message {
+            padding: 4px;
+        }
+
+    .PrivateScreen .buttonBar {
+        width: 400px;
+        background-color: #2d2d2d;
+        color:white;
+        padding: 4px;
+    }
+
+        .PrivateScreen .buttonBar .messageText {
+            width: 250px;
+        }
+
+        .PrivateScreen .buttonBar .button {
+            margin-left: 4px;
+            width: 55px;
+        }
+
+
